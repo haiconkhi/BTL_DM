@@ -22,16 +22,33 @@ def load_data(filepath):
 
 def plot_learning_curve(train_losses, val_losses):
     epochs = range(1, len(train_losses) + 1)
-    plt.figure(figsize=(10, 6))
-    plt.plot(epochs, train_losses, label='Train Loss (MSE)', marker='o')
-    plt.plot(epochs, val_losses, label='Validation Loss (MSE)', marker='s')
-    plt.xlabel('Estimators')
-    plt.ylabel('Loss (MSE)')
-    plt.title('GradientBoostingRegressor Learning Curve')
+    
+    plt.figure(figsize=(16, 5))
+    
+    # Biểu đồ thường
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs, train_losses, label='Training Loss')
+    plt.plot(epochs, val_losses, label='Validation Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title('Training and Validation Loss')
     plt.legend()
     plt.grid(True)
+    
+    # Biểu đồ log scale
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs, train_losses, label='Training Loss')
+    plt.plot(epochs, val_losses, label='Validation Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss (log scale)')
+    plt.yscale('log')
+    plt.title('Loss Curves (log scale)')
+    plt.legend()
+    plt.grid(True, which="both", ls="--", linewidth=0.5)
+    
     plt.tight_layout()
     plt.show()
+
 
 def train_and_evaluate(
     filepath,

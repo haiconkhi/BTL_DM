@@ -24,16 +24,32 @@ def plot_learning_curve(eval_result):
     val_rmse = eval_result['validation_1']['rmse']
     epochs = range(1, len(train_rmse) + 1)
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(16, 5))
+    
+    # Biểu đồ RMSE thường
+    plt.subplot(1, 2, 1)
     plt.plot(epochs, train_rmse, label='Train RMSE', marker='o')
     plt.plot(epochs, val_rmse, label='Validation RMSE', marker='s')
-    plt.xlabel("Epochs")
+    plt.xlabel("Epoch")
     plt.ylabel("RMSE")
     plt.title("XGBoost Training & Validation RMSE")
     plt.legend()
     plt.grid(True)
+
+    # Biểu đồ RMSE log scale
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs, train_rmse, label='Train RMSE', marker='o')
+    plt.plot(epochs, val_rmse, label='Validation RMSE', marker='s')
+    plt.xlabel("Epoch")
+    plt.ylabel("RMSE (log scale)")
+    plt.yscale('log')
+    plt.title("XGBoost RMSE (Log Scale)")
+    plt.legend()
+    plt.grid(True, which="both", linestyle="--", linewidth=0.5)
+
     plt.tight_layout()
     plt.show()
+
 
 def train_xgboost_model(X_train, y_train, X_val, y_val,
                         n_estimators=50, learning_rate=0.1):
