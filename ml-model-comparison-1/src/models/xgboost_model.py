@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from xgboost import XGBRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
@@ -17,6 +18,22 @@ def load_data(filepath):
     X = pd.get_dummies(data.drop('Spent', axis=1), drop_first=True)
     y = data['Spent']
     return X, y
+
+def plot_learning_curve(eval_result):
+    train_rmse = eval_result['validation_0']['rmse']
+    val_rmse = eval_result['validation_1']['rmse']
+    epochs = range(1, len(train_rmse) + 1)
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(epochs, train_rmse, label='Train RMSE', marker='o')
+    plt.plot(epochs, val_rmse, label='Validation RMSE', marker='s')
+    plt.xlabel("Epochs")
+    plt.ylabel("RMSE")
+    plt.title("XGBoost Training & Validation RMSE")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
 def train_xgboost_model(X_train, y_train, X_val, y_val,
                         n_estimators=50, learning_rate=0.1):
@@ -50,18 +67,13 @@ def train_and_evaluate_xgboost(filepath, test_size=0.2):
     model = train_xgboost_model(X_train, y_train, X_val, y_val,
                                 n_estimators=50, learning_rate=0.1)
 
-    ev = model.evals_result()
-    train_rmse = ev['validation_0']['rmse']
-    val_rmse   = ev['validation_1']['rmse']
-    
-    for epoch in range(9, 50, 10):
-        tr_mse  = train_rmse[epoch]**2
-        val_mse = val_rmse[epoch]**2
-        print(f"Epoch {epoch+1}/50, Train Loss: {tr_mse:.6f}, Val Loss: {val_mse:.6f}")
-    
-    best_epoch = min(range(len(val_rmse)), key=lambda i: val_rmse[i])
-    best_val_mse = val_rmse[best_epoch]**2
-    print(f"\nHuấn luyện hoàn tất. Validation loss tốt nhất: {best_val_mse:.6f}\n")
+    eval_result = model.evals_result()
+    plot_learning_curve(eval_result)
+
+    best_epoch = min(range(len(eval_result['validation_1']['rmse'])),
+                     key=lambda i: eval_result['validation_1']['rmse'][i])
+    best_val_mse = eval_result['validation_1']['rmse'][best_epoch] ** 2
+    print(f"\nHuấn luyện hoàn tất. Validation loss tốt nhất: {best_val_mse:.6f} (Epoch {best_epoch + 1})\n")
     
     preds = model.predict(X_test)
     mse  = mean_squared_error(y_test, preds)

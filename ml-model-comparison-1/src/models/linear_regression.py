@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -13,7 +14,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 def load_data(filepath):
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Không tìm thấy file dữ liệu: {filepath}")
-    
+
     data = pd.read_csv(filepath)
     if 'Spent' not in data.columns:
         raise ValueError("Không tìm thấy cột 'Spent' làm mục tiêu!")
@@ -21,6 +22,33 @@ def load_data(filepath):
     X = pd.get_dummies(data.drop('Spent', axis=1), drop_first=True)
     y = data['Spent'].values.reshape(-1, 1)
     return X, y
+
+def plot_loss_curves(history):
+    plt.figure(figsize=(12, 5))
+
+    # Linear scale plot
+    plt.subplot(1, 2, 1)
+    plt.plot(history.history['loss'], label='Training Loss')
+    plt.plot(history.history['val_loss'], label='Validation Loss')
+    plt.title('Training and Validation Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.grid(True)
+
+    # Log scale plot
+    plt.subplot(1, 2, 2)
+    plt.plot(history.history['loss'], label='Training Loss')
+    plt.plot(history.history['val_loss'], label='Validation Loss')
+    plt.yscale('log')
+    plt.title('Loss Curves (log scale)')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss (log scale)')
+    plt.legend()
+    plt.grid(True)
+
+    plt.tight_layout()
+    plt.show()
 
 def train_and_evaluate_nn(
     filepath,
@@ -40,7 +68,7 @@ def train_and_evaluate_nn(
     # 3. Scale dữ liệu
     scaler_X = StandardScaler()
     scaler_y = StandardScaler()
-    
+
     X_train_scaled = scaler_X.fit_transform(X_train)
     X_val_scaled = scaler_X.transform(X_val)
 
@@ -86,6 +114,9 @@ def train_and_evaluate_nn(
 
     min_val_loss = np.min(history.history['val_loss'])
     print(f"\nHuấn luyện hoàn tất. Validation loss tốt nhất: {min_val_loss:.6f}")
+
+    # 8. Vẽ biểu đồ loss
+    plot_loss_curves(history)
 
     return model, scaler_X, scaler_y, history
 

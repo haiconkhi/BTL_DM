@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
@@ -19,6 +20,19 @@ def load_data(filepath):
     y = data['Spent'].values.reshape(-1, 1)
     return X, y
 
+def plot_learning_curve(train_losses, val_losses):
+    epochs = range(1, len(train_losses) + 1)
+    plt.figure(figsize=(10, 6))
+    plt.plot(epochs, train_losses, label='Train Loss (MSE)', marker='o')
+    plt.plot(epochs, val_losses, label='Validation Loss (MSE)', marker='s')
+    plt.xlabel('Estimators')
+    plt.ylabel('Loss (MSE)')
+    plt.title('GradientBoostingRegressor Learning Curve')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
 def train_and_evaluate(
     filepath,
     test_size=0.2,
@@ -29,7 +43,7 @@ def train_and_evaluate(
     # 1. Load dữ liệu
     X, y = load_data(filepath)
     
-    # 2. Chia train/test (chú ý: nếu random_state không được cung cấp thì mỗi lần chạy khác nhau)
+    # 2. Chia train/test
     X_train, X_test, y_train, y_test = train_test_split(
         X, y,
         test_size=test_size,
@@ -55,7 +69,7 @@ def train_and_evaluate(
     )
     model.fit(X_train_scaled, y_train_scaled)
     
-    # 6. Tính loss sau mỗi estimator trên không gian scaled
+    # 6. Tính loss từng epoch
     train_losses = []
     val_losses   = []
     for i, (y_tr_pred, y_val_pred) in enumerate(zip(
@@ -71,6 +85,9 @@ def train_and_evaluate(
             print(f"Epoch {i}/{n_estimators}, "
                   f"Train Loss: {mse_tr:.6f}, "
                   f"Val Loss: {mse_va:.6f}")
+    
+    # 7. Vẽ biểu đồ
+    plot_learning_curve(train_losses, val_losses)
     
     best_val = min(val_losses)
     print("\nHuấn luyện hoàn tất. Validation loss tốt nhất: "
